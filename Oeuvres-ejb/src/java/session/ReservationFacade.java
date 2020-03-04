@@ -16,7 +16,8 @@ import javax.ejb.Stateless;
 import javax.ejb.LocalBean;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
-import javax.servlet.http.HttpServletRequest;
+import javax.persistence.Query;
+import javax.persistence.TemporalType;
 
 /**
  *
@@ -50,7 +51,6 @@ public class ReservationFacade {
         } catch (Exception e) {
             throw e;
         }
-
     }
 
     public List<Reservation> getReservations() throws Exception {
@@ -60,7 +60,45 @@ public class ReservationFacade {
         } catch (Exception e) {
             throw e;
         }
+    }
+
+    public Reservation getReseravationById(Date dateReservation, int idOeuvre) throws Exception{
+
+        try {
+            Query query = em.createNamedQuery("Reservation.findByDateReservationIdOeuvre");
+            query.setParameter("dateReservation", dateReservation, TemporalType.DATE);
+            query.setParameter("idOeuvre", idOeuvre); 
+            return (Reservation)query.getSingleResult(); 
+        } catch (Exception e) {
+            throw e; 
+        }
 
     }
 
+    public void modifyReservation(Date dateReservation, int idOeuvre) throws Exception{
+
+        Reservation reservationE; 
+        
+        try {
+            reservationE = getReseravationById(dateReservation, idOeuvre); 
+            reservationE.setStatut("Confirmée");
+            em.merge(reservationE); 
+            
+        } catch (Exception e) {
+            throw e; 
+        }
+    }
+
+    public void deleteReservation(Date dateReservation, int idOeuvre) throws Exception{
+
+        Reservation reservationE; 
+        
+        try {
+            reservationE = getReseravationById(dateReservation, idOeuvre); 
+            em.remove(reservationE); 
+            
+        } catch (Exception e) {
+            throw e; 
+        }
+    }
 }

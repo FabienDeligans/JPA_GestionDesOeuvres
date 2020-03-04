@@ -57,6 +57,10 @@ public class SrvlReservation extends HttpServlet {
                 vueReponse = enreigstrerReservation(request);
             } else if (demande.equalsIgnoreCase("getReservations.res")) {
                 vueReponse = getReservations(request);
+            } else if (demande.equalsIgnoreCase("confirmerReservation.res")){
+                vueReponse = confirmerReservation(request); 
+            } else if(demande.equalsIgnoreCase("supprimmerReservation.res")){
+                vueReponse = supprimmerReservation(request); 
             }
         } catch (Exception e) {
             erreur = Utilitaire.getExceptionCause(e);
@@ -170,5 +174,34 @@ public class SrvlReservation extends HttpServlet {
         }
 
     }
+
+    private String confirmerReservation(HttpServletRequest request) throws Exception{
+        
+        try {
+            int idOeuvre = Integer.parseInt(request.getParameter("id")); 
+            String date = request.getParameter("dateres").replace("'", "");
+            java.util.Date dateReservation = Utilitaire.StrToDate(date, "yyyy-MM-dd");
+            reservationF.modifyReservation(dateReservation, idOeuvre); 
+            return "/getReservations.res";
+        } catch (Exception e) {
+            throw e; 
+        }
+        
+    }
+
+    private String supprimmerReservation(HttpServletRequest request) throws Exception{
+        
+        try {
+            int idOeuvre = Integer.parseInt(request.getParameter("id")); 
+            String date = request.getParameter("dateres").replace("'", "");
+            java.util.Date dateReservation = Utilitaire.StrToDate(date, "yyyy-MM-dd");
+            reservationF.deleteReservation(dateReservation, idOeuvre); 
+            return "/getReservations.res";
+        } catch (Exception e) {
+            throw e; 
+        }
+        
+    }
+
 
 }
