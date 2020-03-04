@@ -6,8 +6,10 @@
 package controleurs;
 
 import dal.Oeuvre;
+import dal.Reservation;
 import java.io.IOException;
 import java.util.Date;
+import java.util.List;
 import javax.ejb.EJB;
 import javax.servlet.RequestDispatcher;
 import javax.servlet.ServletException;
@@ -35,44 +37,48 @@ public class SrvlReservation extends HttpServlet {
      * @throws IOException if an I/O error occurs
      */
     @EJB
-    OeuvreFacade oeuvreF;  
+    OeuvreFacade oeuvreF;
     @EJB
-    ReservationFacade reservationF; 
-    
-    String erreur; 
+    ReservationFacade reservationF;
+
+    String erreur;
+
     protected void processRequest(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        String demande; 
-        String vueReponse = "/home.jsp"; 
-        erreur = null; 
-        
+        String demande;
+        String vueReponse = "/home.jsp";
+        erreur = null;
+
         try {
-            demande = getDemande(request); 
-            if(demande.equalsIgnoreCase("reserver.res")) {
-                vueReponse = reserverOeuvre(request); 
-            } else if(demande.equalsIgnoreCase("enregistrerReservation.res")) {
-                vueReponse = enreigstrerReservation(request); 
+            demande = getDemande(request);
+            if (demande.equalsIgnoreCase("reserver.res")) {
+                vueReponse = reserverOeuvre(request);
+            } else if (demande.equalsIgnoreCase("enregistrerReservation.res")) {
+                vueReponse = enreigstrerReservation(request);
+            } else if (demande.equalsIgnoreCase("getReservations.res")) {
+                vueReponse = getReservations(request);
             }
         } catch (Exception e) {
-            erreur = Utilitaire.getExceptionCause(e); 
+            erreur = Utilitaire.getExceptionCause(e);
         } finally {
             request.setAttribute("erreurR", erreur);
             request.setAttribute("pageR", vueReponse);
-            RequestDispatcher dsp = request.getRequestDispatcher("/index.jsp"); 
-            if(vueReponse.contains(".res")){
-                dsp = request.getRequestDispatcher(vueReponse); 
+            RequestDispatcher dsp = request.getRequestDispatcher("/index.jsp");
+            if (vueReponse.contains(".res")) {
+                dsp = request.getRequestDispatcher(vueReponse);
             }
             dsp.forward(request, response);
         }
-        
+
     }
-    
+
     private String getDemande(HttpServletRequest request) {
         String demande = "";
         demande = request.getRequestURI();
         demande = demande.substring(demande.lastIndexOf("/") + 1);
         return demande;
     }
+
     // <editor-fold defaultstate="collapsed" desc="HttpServlet methods. Click on the + sign on the left to edit the code.">
     /**
      * Handles the HTTP <code>GET</code> method.
@@ -112,42 +118,57 @@ public class SrvlReservation extends HttpServlet {
         return "Short description";
     }// </editor-fold>
 
-    private String reserverOeuvre(HttpServletRequest request) throws Exception{
+    private String reserverOeuvre(HttpServletRequest request) throws Exception {
 
         try {
-            int idOeuvre = Integer.parseInt(request.getParameter("id")); 
-            Oeuvre oeuvreE = oeuvreF.getOeuvreById(idOeuvre); 
+            int idOeuvre = Integer.parseInt(request.getParameter("id"));
+            Oeuvre oeuvreE = oeuvreF.getOeuvreById(idOeuvre);
             request.setAttribute("oeuvreR", oeuvreE);
-            return "/reservation.jsp"; 
+            return "/reservation.jsp";
         } catch (Exception e) {
-            throw e; 
+            throw e;
         }
     }
 
     private String enreigstrerReservation(HttpServletRequest request) throws Exception {
 
-        Date dateReservation = null; 
-        String titre = ""; 
-        
+        Date dateReservation = null;
+        String titre = "";
+
         try {
-            int idOeuvre = Integer.parseInt(request.getParameter("id")); 
-            Oeuvre oeuvreE = oeuvreF.getOeuvreById(idOeuvre); 
-            titre = oeuvreE.getTitre(); 
-            String date = request.getParameter("dateReservation"); 
-            dateReservation = Utilitaire.StrToDate(date, "yyyy-MM-dd"); 
-            HttpSession session = request.getSession(true); 
-            int idAdherent = (Integer) session.getAttribute("userIdS"); 
-            reservationF.addReservation(dateReservation, idOeuvre, idAdherent); 
-            return "/home.jsp"; 
+            int idOeuvre = Integer.parseInt(request.getParameter("id"));
+            Oeuvre oeuvreE = oeuvreF.getOeuvreById(idOeuvre);
+            titre = oeuvreE.getTitre();
+            String date = request.getParameter("dateReservation");
+            dateReservation = Utilitaire.StrToDate(date, "yyyy-MM-dd");
+            
+            HttpSession session = request.getSession(true);
+            int idAdherent = (Integer) session.getAttribute("userIdS");
+            
+            reservationF.addReservation(dateReservation, idOeuvre, idAdherent);
+            
+            return "getReservation.res";
         } catch (Exception e) {
-            erreur = Utilitaire.getExceptionCause(e); 
-            if(erreur.contains("PRIMARY")) {
+            erreur = Utilitaire.getExceptionCause(e);
+            if (erreur.contains("PRIMARY")) {
                 erreur = "l'oeuvre " + titre + " a déjà été réservée pour le : " + Utilitaire.DateToStr(dateReservation, "dd/MM/yyyy") + " !";
             }
-            throw new Exception(erreur); 
+            throw new Exception(erreur);
         }
-        
+
     }
 
-    
+    private String getReservations(HttpServletRequest request) throws Exception {
+
+        try {
+            List<Reservation> lstReservationsE = reservationF.getReservations();
+            request.setAttribute("lstReservationsR", lstReservationsE);
+            return ("/listeReservations.jsp");
+
+        } catch (Exception e) {
+            throw e; 
+        }
+
+    }
+
 }

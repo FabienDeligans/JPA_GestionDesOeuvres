@@ -10,11 +10,13 @@ import dal.Oeuvre;
 import dal.Reservation;
 import dal.ReservationPK;
 import java.util.Date;
+import java.util.List;
 import javax.ejb.EJB;
 import javax.ejb.Stateless;
 import javax.ejb.LocalBean;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
+import javax.servlet.http.HttpServletRequest;
 
 /**
  *
@@ -22,33 +24,43 @@ import javax.persistence.PersistenceContext;
  */
 @Stateless
 @LocalBean
- 
+
 public class ReservationFacade {
 
     @PersistenceContext(unitName = "Oeuvres-ejbPU")
-    private EntityManager em; 
+    private EntityManager em;
 
     @EJB
-    AdherentFacade adherentF;     
-    
+    AdherentFacade adherentF;
+
     @EJB
-    OeuvreFacade oeuvreF; 
-    
+    OeuvreFacade oeuvreF;
+
     public void addReservation(Date dateReservation, int idOeuvre, int idAdherent) throws Exception {
 
         try {
-            ReservationPK reservationPKE = new ReservationPK(dateReservation, idOeuvre); 
-            Reservation reservationE = new Reservation(reservationPKE, "En attente"); 
-            Adherent adherentE = adherentF.getAdherentById(idAdherent); 
+            ReservationPK reservationPKE = new ReservationPK(dateReservation, idOeuvre);
+            Reservation reservationE = new Reservation(reservationPKE, "En attente");
+            Adherent adherentE = adherentF.getAdherentById(idAdherent);
             reservationE.setAdherent(adherentE);
-            Oeuvre oeuvreE = oeuvreF.getOeuvreById(idOeuvre); 
-            reservationE.setOeuvre(oeuvreE); 
+            Oeuvre oeuvreE = oeuvreF.getOeuvreById(idOeuvre);
+            reservationE.setOeuvre(oeuvreE);
             em.persist(reservationE);
-            
+
         } catch (Exception e) {
-            throw e; 
+            throw e;
         }
 
     }
-    
+
+    public List<Reservation> getReservations() throws Exception {
+
+        try {
+            return (em.createNamedQuery("Reservation.findAll").getResultList());
+        } catch (Exception e) {
+            throw e;
+        }
+
+    }
+
 }
