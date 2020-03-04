@@ -62,7 +62,7 @@ public class ReservationFacade {
         }
     }
 
-    public Reservation getReseravationById(Date dateReservation, int idOeuvre) throws Exception{
+    public Reservation getReservationById(Date dateReservation, int idOeuvre) throws Exception{
 
         try {
             Query query = em.createNamedQuery("Reservation.findByDateReservationIdOeuvre");
@@ -80,7 +80,7 @@ public class ReservationFacade {
         Reservation reservationE; 
         
         try {
-            reservationE = getReseravationById(dateReservation, idOeuvre); 
+            reservationE = getReservationById(dateReservation, idOeuvre); 
             reservationE.setStatut("Confirmée");
             em.merge(reservationE); 
             
@@ -94,7 +94,7 @@ public class ReservationFacade {
         Reservation reservationE; 
         
         try {
-            reservationE = getReseravationById(dateReservation, idOeuvre); 
+            reservationE = getReservationById(dateReservation, idOeuvre); 
             em.remove(reservationE); 
             
         } catch (Exception e) {

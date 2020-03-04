@@ -59,8 +59,8 @@ public class SrvlReservation extends HttpServlet {
                 vueReponse = getReservations(request);
             } else if (demande.equalsIgnoreCase("confirmerReservation.res")){
                 vueReponse = confirmerReservation(request); 
-            } else if(demande.equalsIgnoreCase("supprimmerReservation.res")){
-                vueReponse = supprimmerReservation(request); 
+            } else if(demande.equalsIgnoreCase("supprimerReservation.res")){
+                vueReponse = supprimerReservation(request); 
             }
         } catch (Exception e) {
             erreur = Utilitaire.getExceptionCause(e);
@@ -189,7 +189,7 @@ public class SrvlReservation extends HttpServlet {
         
     }
 
-    private String supprimmerReservation(HttpServletRequest request) throws Exception{
+    private String supprimerReservation(HttpServletRequest request) throws Exception{
         
         try {
             int idOeuvre = Integer.parseInt(request.getParameter("id")); 
