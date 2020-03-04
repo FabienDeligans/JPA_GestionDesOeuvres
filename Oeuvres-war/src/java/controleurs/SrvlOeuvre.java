@@ -35,41 +35,46 @@ public class SrvlOeuvre extends HttpServlet {
      * @throws ServletException if a servlet-specific error occurs
      * @throws IOException if an I/O error occurs
      */
-    
-    String erreur; 
-    
+    String erreur;
+
     @EJB
-    OeuvreFacade oeuvreF; 
+    OeuvreFacade oeuvreF;
     @EJB
-    ProprietaireFacade proprietaireF; 
-    
+    ProprietaireFacade proprietaireF;
+
     protected void processRequest(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        String demande; 
-        String vueReponse = "/home.jsp"; 
-        erreur = null; 
-        
+        String demande;
+        String vueReponse = "/home.jsp";
+        erreur = null;
+
         try {
-            demande = getDemande(request); 
-            if(demande.equalsIgnoreCase("catalogue.oe")) {
-                vueReponse = getOeuvres(request); 
-            } else if(demande.equalsIgnoreCase("myCatalogue.oe")) {
-                vueReponse = getMyOeuvres(request); 
+            demande = getDemande(request);
+            if (demande.equalsIgnoreCase("catalogue.oe")) {
+                vueReponse = getOeuvres(request);
+            } else if (demande.equalsIgnoreCase("myCatalogue.oe")) {
+                vueReponse = getMyOeuvres(request);
+            } else if (demande.equalsIgnoreCase("ajouter.oe")) {
+                vueReponse = creerOeuvre(request);
+            } else if (demande.equalsIgnoreCase("enregistrer.oe")) {
+                vueReponse = enregistrerOeuvre(request);
+            } else if (demande.equalsIgnoreCase("supprimer.oe")) {
+                vueReponse = supprimerOeuvre(request);
             }
         } catch (Exception e) {
-            erreur = Utilitaire.getExceptionCause(e); 
+            erreur = Utilitaire.getExceptionCause(e);
         } finally {
             request.setAttribute("erreurR", erreur);
             request.setAttribute("pageR", vueReponse);
-            RequestDispatcher dsp = request.getRequestDispatcher("/index.jsp"); 
-            if(vueReponse.contains(".oe")){
-                dsp = request.getRequestDispatcher(vueReponse); 
+            RequestDispatcher dsp = request.getRequestDispatcher("/index.jsp");
+            if (vueReponse.contains(".oe")) {
+                dsp = request.getRequestDispatcher(vueReponse);
             }
             dsp.forward(request, response);
         }
-        
+
     }
-    
+
     private String getDemande(HttpServletRequest request) {
         String demande = "";
         demande = request.getRequestURI();
@@ -118,30 +123,87 @@ public class SrvlOeuvre extends HttpServlet {
 
     private String getOeuvres(HttpServletRequest request) throws Exception {
 
-        List<Oeuvre> lstOeuvresE; 
+        List<Oeuvre> lstOeuvresE;
         try {
-            lstOeuvresE = oeuvreF.getOeuvres(); 
+            lstOeuvresE = oeuvreF.getOeuvres();
             request.setAttribute("lstOeuvresR", lstOeuvresE);
-            return "/catalogue.jsp"; 
+            return "/catalogue.jsp";
         } catch (Exception e) {
-            throw e; 
+            throw e;
         }
-        
+
     }
 
     private String getMyOeuvres(HttpServletRequest request) throws Exception {
-        
+
         try {
-            HttpSession session = request.getSession(true); 
-            int userId = (Integer) session.getAttribute("userIdS"); 
-            Proprietaire proprietaireE = proprietaireF.getProprietaireById(userId); 
-            List<Oeuvre> lstOeuvresE = oeuvreF.getOeuvresByProprietaire(proprietaireE); 
+            HttpSession session = request.getSession(true);
+            int userId = (Integer) session.getAttribute("userIdS");
+            Proprietaire proprietaireE = proprietaireF.getProprietaireById(userId);
+            List<Oeuvre> lstOeuvresE = oeuvreF.getOeuvresByProprietaire(proprietaireE);
             request.setAttribute("lstOeuvresR", lstOeuvresE);
-            return "/myCatalogue.jsp"; 
+            return "/myCatalogue.jsp";
         } catch (Exception e) {
-            throw e; 
+            throw e;
         }
-        
+
+    }
+
+    private String creerOeuvre(HttpServletRequest request) throws Exception {
+
+        String vueReponse;
+        try {
+            Oeuvre oeuvreE = new Oeuvre();
+            oeuvreE.setIdOeuvre(0);
+            request.setAttribute("oeuvreR", oeuvreE);
+            request.setAttribute("titre", "créer une oeuvre");
+            vueReponse = "/oeuvre.jsp";
+            return vueReponse;
+        } catch (Exception e) {
+            throw e;
+        }
+
+    }
+
+    private String enregistrerOeuvre(HttpServletRequest request) throws Exception {
+
+        try {
+            int idOeuvre = Integer.parseInt(request.getParameter("id"));
+            String titre = request.getParameter("titre");
+            double prix = Double.parseDouble(request.getParameter("prix"));
+            HttpSession session = request.getSession(true);
+            int idProprietaire = (Integer) session.getAttribute("userIdS");
+            if (idOeuvre > 0) {
+                //oeuvreF.modifyOeuvre(idOeuvre, titre, prix, idProprietaire); 
+            } else {
+                oeuvreF.addOeuvre(titre, prix, idProprietaire);
+            }
+            String vueReponse = "catalogue.oe";
+            return vueReponse;
+        } catch (Exception e) {
+            throw e;
+        }
+
+    }
+
+    private String supprimerOeuvre(HttpServletRequest request) throws Exception {
+
+        Oeuvre oeuvreE = null; 
+        String titre = ""; 
+        try {
+            int idOeuvre = Integer.parseInt(request.getParameter("id"));
+            oeuvreE = oeuvreF.getOeuvreById(idOeuvre); 
+            titre = oeuvreE.getTitre(); 
+            oeuvreF.deleteOeuvre(idOeuvre);
+            String vueReponse = "catalogue.oe";
+            return vueReponse;
+        } catch (Exception e) {
+            erreur = Utilitaire.getExceptionCause(e);
+            if(erreur.contains("FK_RESERVATION_OEUVRE")){
+                erreur = "Il n'est pas possible de supprimer : " + titre + " car elle a été réservée !"; 
+            }
+            throw new Exception(erreur);
+        }
     }
 
 }

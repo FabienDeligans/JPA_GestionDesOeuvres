@@ -8,6 +8,8 @@ package session;
 import dal.Adherent;
 import javax.ejb.Stateless;
 import javax.ejb.LocalBean;
+import javax.ejb.TransactionManagement;
+import javax.ejb.TransactionManagementType;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import javax.persistence.Query;
@@ -19,6 +21,7 @@ import outils.Utilitaire;
  */
 @Stateless
 @LocalBean
+@TransactionManagement(TransactionManagementType.CONTAINER)
 public class AdherentFacade {
 
     @PersistenceContext(unitName = "Oeuvres-ejbPU")
